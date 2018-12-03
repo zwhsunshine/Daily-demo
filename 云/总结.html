@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>1201</title>
+</head>
+<body>
+<script type="text/javascript">
+/*
+	浅拷贝
+		let arr = [1,2];
+		let arr2 = Object.assign([],arr);
+
+	深度拷贝（deepclone）
+
+		1. let arr2 = JSON.parse(JSON.stringify(arr));
+
+		2. 	let o = data.push ? [] : {}
+			for in
+			if(typeof data[attr] === 'object'){
+				o[attr] = deepclone()
+			}
+
+			是否是数组
+				1. data.push ? [] : {}
+				2. isArray
+
+		
+*/
+
+
+/*
+	1. 计算section高度  window.innerHeight - head.height
+		window.onresize()
+	2. render
+		1. innerHTML = '';
+		2. sarr.length = 0;
+		3. arr = getChild(id);   通过id渲染子级
+			getChild -> 
+				for( let attr in data){
+					if(data[attr].id === pid){  }
+				}
+		4. 判断arr是否为真
+		5. render
+			1. render中有checked的className的改变
+			2. *****捕获被选中的id
+					if(e.checked){ sarr.push(e)};
+			3. 创建div img span input i ...
+			4. 加事件click
+				img：把checked = false
+					赋值的关系 data[e.id].checked == e.checked
+				i: 
+					checked取反
+					render()
+					******render(id)   render(e.id)
+						闭包把e.id存起来，供接下来的单击事件用id，形参去拿实参
+			5. appendChild();
+
+		6. 面包屑
+			1. 找父级数据
+			2. 找所有父级数据
+			3. 不是最后一级创建a
+				是最后一级创建span
+
+		7. 框选
+			1. down
+				点击空白处，清空其他
+				checked = false
+				render()
+				框： block  left  top
+
+			2. 画框
+				判断碰撞
+				e.checked = true
+			
+			3. 点击全选
+				根据全选按钮class是否包含checked，来设置e.checked的值
+
+		8. 删除
+			1. click：
+				this.sarr.length
+					1. 弹窗显示
+					2. 确定
+						循环this.sarr
+						    if('create' in ... ){
+								delete 
+						    }
+					3. 取消
+					4. 恢复数据
+
+			2. keyup:
+				keyCode
+					1. delete
+					2. enter
+
+		9. 重命名
+			1. this.sarr.length
+				1. 不可多余1
+				2. 不可不选
+			2. 过滤到当前项，用于看名字是否重复
+			3. 判断是否相等 
+				1. ele.dataset.id === this.sarr[0].id -> 设置当前项
+				2. onblur:
+					1. 不能为空
+					2. arr.some  判断是否重复
+						1. 重复：提示
+						2. 不重复：
+							1. 修改title -> this.sarr.title = txt.value
+							2. render
+
+		10. DOMtree  递归
+			1. renderTree
+			2. tree.innerHTML = ''
+			3. arr = getChild(id);
+			4. 创建ul
+			5. num++  padding
+			6. arr && arr.forEach(()=>{   //有子级循环子级
+					let ary = getChild(id);   //子级数据
+					创建li div span i
+					div.onclick
+
+					可能有ul
+					if(ary){
+						li.appendChild(renderTree(e.id,num))  //递归
+					}
+
+					ul.appendChild(li);
+
+				})
+				retrun ul
+		
+		11. 移动到
+			1. this.sarr.length 判断是否有选中文件
+			2. 弹窗打开
+			3. li.onclick
+				1. background
+				2. kid 记录 选中的数据的id
+			4. renderTree可以做到复用
+			5. ok.onclick
+				1. this.sarr.length
+				2. this.sarr.forEach(()=>{
+					children.push(e)   //当前项push到数组children
+ 					getChildren(e.id)   //e.id下面的项push到数组children
+ 					//此时数组children用来之后判断，不可以放到children中包含的任何一项中，因为不符合逻辑，不可以移动文件夹
+
+					if(! children.some(e=>e.id) == kid){
+						1. 可以移动文件夹
+						2. let arr = getChild(kid);
+						3. 判断是否重名+副本
+						4. 
+					}
+
+
+				})
+
+
+
+
+*/
+
+let arr = ['123','123-副本','123-副本-副本','234'];
+let re = /^123(-副本)*$/;
+arr.forEach((e)=>{
+	if(re.test(e)){
+		console.log(e);
+
+	}
+})
+
+// arr.filter(e=>{
+// 	retrun arr[i].length
+// })
+
+
+</script>
+</body>
+</html>

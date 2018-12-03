@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+<style type="text/css">
+*{ margin: 0; padding: 0; box-sizing: border-box; }
+#ul{ width: 300px; float: left; background: #f2f2f2; }
+li{ font-size: 16px; color: #333; line-height: 50px; border-bottom: 1px solid #fff; padding: 0 20px; }
+#img{ width: 400px; float: left; }
+</style>
+</head>
+<body>
+
+<div style="padding-bottom: 10px;">
+	<button id="add">加一张</button>
+	<button id="sub">减一张</button>
+</div>
+<ul id="ul"></ul>
+<img src="" id="img">
+
+<script type="text/javascript">
+//获取元素
+const add = document.querySelector('#add'),
+sub = document.querySelector('#sub'),
+ul = document.querySelector('#ul'),
+img = document.querySelector('#img');
+let arr = ['images/1.jpg','images/2.jpg','images/3.jpg','images/4.jpg','images/5.jpg','images/6.jpg','images/7.jpg'],
+num = 0;
+
+
+//定义函数-> 遍历li，点击li的时候，右侧出现相应的图片
+function tab(){
+	let lis = document.querySelectorAll('li');
+	for(var j=0; j<lis.length; j++){
+		lis[j].index = j;
+		lis[j].onclick = function(){
+			img.src = arr[this.index];
+		}
+	}
+}
+
+
+//点击加一页
+add.onclick = function(){
+
+	//每次点击，将arr中的数据对应增加到li标签，并放到ul中
+	num++;
+	if(num <= arr.length){
+		ul.innerHTML += `<li>${arr[num-1]}</li>`
+		img.src = arr[num-1];
+	}else{
+		num = arr.length;
+		alert('sorry，没有更多的图片了');
+	}
+
+	//每次点击调用函数tab()，重新获取新的lis.length，然后遍历li，加点击事件
+	tab();
+}
+
+
+//点击减一页
+sub.onclick = function(){
+
+	//每次点击 num--，先将ul清空，然后将现在的数量的li添加到ul中
+	if(num == 0){
+		num = 0;
+		alert('K O ! ! !')
+	}else if(num == 1){
+		num--;
+		img.src = '';
+	}else{
+		num--;
+	}
+	ul.innerHTML = '';
+	for(let i=0; i<num; i++){
+		ul.innerHTML += `<li>${arr[i]}</li>`;
+		img.src = arr[i];
+	}
+
+	//每次点击调用函数tab()，重新获取新的lis.length，然后遍历li，加点击事件
+	tab();
+}
+
+</script>
+
+
+</body>
+</html>
