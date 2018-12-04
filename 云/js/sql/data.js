@@ -66,14 +66,13 @@ var data = {
         "pid": 2,
         "title": "张国荣",
         "checked":false
+    },
+    "321321": {
+        "id": 321321,
+        "pid": 0,
+        "title": "123",
+        "checked":false
     }
-    // ,
-    // "321321": {
-    //     "id": 321321,
-    //     "pid": 0,
-    //     "title": "123",
-    //     "checked":false
-    // }
 }
 
 

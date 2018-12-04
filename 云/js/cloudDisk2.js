@@ -39,7 +39,8 @@ class CloudDisk{
 		this.id = -1;
 		this.disX = this.disY = this.kid = 0;
 		this.temp = this.v = '';
-		this.child = [];
+		this.child = [];   //存放自己及子级的数据;
+		this.karr = [];  //存放要移动到的文件夹中所有数据的title,用于判断title是否+副本
 		this.arr = [];  //用于存放 当前页所有文件夹 的数据
 		this.sarr = [];  //用于存放 选中文件夹 的数据
 		//注：this.arr && this.sarr 中存放的是每个数据是个对象属于复合类型，是赋址的关系，因此修改这里面的数据，等同于修改data中的对应的数据
@@ -648,6 +649,26 @@ class CloudDisk{
 					//循环选中的数据
 					that.sarr.forEach(e=>{
 
+						//先清空that.karr
+						that.karr.length = 0;
+
+						//移动到的文件夹中所有数据的title push 到that.sarr中
+						that.getChild(that.kid).forEach(k=>{
+							that.karr.push(k.title);
+						})
+
+						if(that.karr.some(s=>s.title === e.title)){
+							
+						}
+
+						//匹配，选中数据中的title 和 移动到的文件夹中所有数据的title相一致的时候，过滤出来，创建一个新数组
+						let n = that.karr.filter(m=>{
+							let re = new RegExp( '^' + e.title + '(-副本)*$');
+							console.log(re);
+							return re.test(m.title);
+						})
+						console.log(n);
+
 						//把选中数据的pid改成需要移入的文件夹的id，再渲染数据即可
 						data[e.id].pid = that.kid;
 
@@ -707,11 +728,6 @@ class CloudDisk{
 		let img = new Image;
 		img.src = 'img/folder-b.png';
 
-		//创建span
-		// let span = document.createElement('span');
-		// span.className = 'folder-name';
-		// span.innerHTML = e.title;
-
 		//创建input
 		let input = document.createElement('input');
 		input.className = 'editor';
@@ -745,25 +761,24 @@ class CloudDisk{
 
 		input.value = '新建文件夹'+this.v;
 
-		let oldVal = input.value;
-
 		//input失焦
 		input.onblur = function(){
 			let arr = that.getChild(that.id);
-			let flag = arr.some(e=>e.title == this.value);
+			let flag = arr && arr.some(e=>e.title == this.value);
 
 			//名字重复，val还原回之前的名字，选中状态，弹窗提示
 			if(flag){
 				this.value = oldVal;
 				this.select();
-				that.tips('名称不能重复哦！')
+				that.tips('名称不能重复哦！');
+				return;  //return必须写，不然还会继续执行下面的代码
 			}
 
 			//当名字已经修改了，不为新建文件夹+编号v的时候
-			else if( this.value !== '新建文件夹' + that.v ){
+			if( this.value !== '新建文件夹' + that.v ){
 
 				//把num对应的数组中的这一项删除掉，使下次可以进行筛选赋值
-				delete data[this.id].num[that.v];
+				delete data[that.id].num[that.v];
 				that.v = 'no';
 
 				//虽然修改了名字 不为 新建文件夹+编号v，但是有可能为 新建文件夹+其他自定义的一个编号，此时，需要把这个编号放到数组中，供之后的循环判断筛选赋值
@@ -876,7 +891,8 @@ new CloudDisk().init();
 	4. render(id)   render(e.id)
 		闭包把e.id存起来，供接下来的单击事件用id，形参去拿实参
 
-	5. 
+	5. 新建文件夹名字相同的时候，弹窗提示了，却新建多个文件夹？
+		在判断名字相同的语句中，没有写return，导致，继续执行了下mai面的代码
 
 */
 
