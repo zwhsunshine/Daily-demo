@@ -36,6 +36,7 @@ class CloudDisk{
 		//获取动态元素赋初始值为null，下面代码中真正创建元素之后会赋值，用于获取动态元素
 		this.items = this.spans = this.fi = this.span = this.timer = null;
 		
+		//赋初始值
 		this.id = -1;
 		this.disX = this.disY = this.kid = 0;
 		this.temp = this.v = '';
@@ -66,13 +67,6 @@ class CloudDisk{
 
 			//全选按钮点击是否添加类名
 			this.classList.toggle('checked');
-
-			//获取当前面包屑最后一级（span）上的data-id的值
-			// let id = that.span.dataset.id * 1;
-			
-			//生成数组arr
-			// let arr = that.getChild(this.id);
-			// console.log(that.arr);
 
 			//循环数组that.arr，使得数组arr中的每一项的checked的值与全选按钮的选中状态保持一致，到达全选或全不选的效果
 			that.arr.forEach((e,i)=>{
@@ -141,7 +135,6 @@ class CloudDisk{
 		this.sarr.length = 0;
 
 		//生成数据
-		// let arr = this.getChild(id);
 		this.arr = this.getChild(id);
 		
 		//当this.arr为null时，说明没有子级数据的时候，显示 “暂无文件”
@@ -235,8 +228,12 @@ class CloudDisk{
 
 	//单击
 	click(e,id,ev){
-		data[e.id].checked = !data[e.id].checked;
-		// e.checked = !e.checked;
+
+		//上下两句同理，e的值是个对象，此时，两个数据中指向的是同一个地址，所以修改了e的checked就是修改了data中对应的数据
+		e.checked = !e.checked;
+		// data[e.id].checked = !data[e.id].checked;
+
+		//渲染
 		this.render(id);
 		ev.preventDefault();
 
@@ -400,15 +397,20 @@ class CloudDisk{
 			else{
 				this.items[i].classList.remove('active');
 				this.fi[i].classList.remove('checked');
-				// data[this.items[i].dataset.id].checked = false;
+				// if(data[this.items[i].dataset.id].checked){
+				// 	data[this.items[i].dataset.id].checked = false;
+				// }
 				
 			}
 		}
 
-		//当文件夹的数量和选中的数组的length相同时，所以全部选中
-		checkedAll.className = (this.items.length === this.sarr.length) ? 'checked' : '';
-		// checkedAll.className = this.sarr.every(e=>e.checked) ? 'checked' : '';
-	
+		//checkedAll全选按钮是否选中，取决于当前页面的文件夹是否全部选中
+		//方法1：当前页面中的所有文件夹的数据中的checked的值是否都为true
+		checkedAll.className = this.arr.every(e=>e.checked) ? 'checked' : '';
+		
+		//方法2：当前页面文件夹的数量和选中的数组的length是否相同
+		// checkedAll.className = (this.items.length === this.sarr.length) ? 'checked' : '';	
+
 	}
 
 	//鼠标抬起
@@ -452,9 +454,17 @@ class CloudDisk{
 			//点击删除按钮
 			this.conf[0].onclick = function(){
 
-				//循环选中的数据，把数据data中的对应的数据删除掉
+				//循环选中的数据
 				that.sarr.forEach(e=>{
+
+					//把数组num中的对应的项删掉
+					if('create' in e){
+						delete data[that.id].num[e.create]
+					}
+
+					//把数据data中的对应的数据删除掉
 					delete data[e.id];
+
 				})
 
 				//根据删除后的数据，进行渲染
@@ -482,7 +492,7 @@ class CloudDisk{
 	rename(){
 		let that = this;
 
-		//选中了1项
+		//选中了一项
 		if( this.sarr.length === 1 ){
 
 			//先过滤掉当前项，用于去判断修改后的名字是否其他文件夹的名字重复
@@ -652,22 +662,23 @@ class CloudDisk{
 						//先清空that.karr
 						that.karr.length = 0;
 
-						//移动到的文件夹中所有数据的title push 到that.sarr中
-						that.getChild(that.kid).forEach(k=>{
-							that.karr.push(k.title);
-						})
+						//that.sarr中存放要移动到的文件夹中的所有数据
+						that.karr = that.getChild(that.kid);
 
+						//移动到的文件夹中所有数据的title 与 选中数据中的title 有重名的时候
 						if(that.karr.some(s=>s.title === e.title)){
 							
-						}
+							//过滤出来，创建一个新数组
+							let n = that.karr.filter(m=>{
+								let re = new RegExp( '^' + e.title + '(-副本)*$');
+								return re.test(m.title);
+							}).sort((a,b)=>{
+								return a.title - b.title
+							})
 
-						//匹配，选中数据中的title 和 移动到的文件夹中所有数据的title相一致的时候，过滤出来，创建一个新数组
-						let n = that.karr.filter(m=>{
-							let re = new RegExp( '^' + e.title + '(-副本)*$');
-							console.log(re);
-							return re.test(m.title);
-						})
-						console.log(n);
+							//有待改进、删除时
+							e.title = n[n.length-1].title + '-副本';
+						}
 
 						//把选中数据的pid改成需要移入的文件夹的id，再渲染数据即可
 						data[e.id].pid = that.kid;
@@ -766,12 +777,20 @@ class CloudDisk{
 			let arr = that.getChild(that.id);
 			let flag = arr && arr.some(e=>e.title == this.value);
 
-			//名字重复，val还原回之前的名字，选中状态，弹窗提示
+			//当名字重复时，val还原回之前的名字，选中状态，弹窗提示
 			if(flag){
-				this.value = oldVal;
+				this.value = '新建文件夹'+that.v;
 				this.select();
 				that.tips('名称不能重复哦！');
 				return;  //return必须写，不然还会继续执行下面的代码
+			}
+
+			//当名字为空时，val还原回之前的名字，选中状态，弹窗提示
+			if(!this.value){
+				this.value = '新建文件夹'+that.v;
+				this.select();
+				that.tips('名称不能为空哦！');
+				return;  
 			}
 
 			//当名字已经修改了，不为新建文件夹+编号v的时候
@@ -781,12 +800,14 @@ class CloudDisk{
 				delete data[that.id].num[that.v];
 				that.v = 'no';
 
-				//虽然修改了名字 不为 新建文件夹+编号v，但是有可能为 新建文件夹+其他自定义的一个编号，此时，需要把这个编号放到数组中，供之后的循环判断筛选赋值
+				//虽然修改了名字 不为 新建文件夹+编号v，但是有可能为 新建文件夹+其他自定义的一个数字编号，此时，需要把这个编号放到数组中，供之后的循环判断筛选赋值
 				if(/^新建文件夹(\d+)$/.test(this.value)){
 					let n = this.value.match(/^新建文件夹(\d+)$/)[1]*1;
 					data[this.id].num[n] = n;
 					that.v = n;
 				}
+
+				
 
 			}
 
@@ -801,7 +822,7 @@ class CloudDisk{
 		        "num":[]
 			}
 
-			//
+			//如果v的值不为no，说明新建成功，并且名字为新建文件夹+编号，此时在对应的这个数据中加入新的属性create，用来记录新建文件夹的编号
 			if( that.v !== 'no' ){
 				data[cid].create = that.v;
 			}
@@ -893,7 +914,10 @@ new CloudDisk().init();
 
 	5. 新建文件夹名字相同的时候，弹窗提示了，却新建多个文件夹？
 		在判断名字相同的语句中，没有写return，导致，继续执行了下mai面的代码
+	
+	6. 669行
 
+	
 */
 
 
