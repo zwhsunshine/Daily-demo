@@ -937,6 +937,7 @@ new CloudDisk().init();
 		解析：
 			1. arr.every(e=>{e.checked})  //错误，使用return值的时候，简写成一行的时候，不能使用中括号
 			2. arr.every(e=>e.checked)    //正确
+			3. arr.every(e=>{return e.checked})   //正确
 
 
 	4. down的时候，并没有取消选中，而是在move的时候取消选中了，
