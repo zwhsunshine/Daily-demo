@@ -753,17 +753,35 @@ class CloudDisk{
 
 						//移动到的文件夹中所有数据的title 与 选中数据中的title 有重名的时候
 						if(that.karr.some(s=>s.title === e.title)){
-							
+
 							//过滤出来，创建一个新数组
-							let n = that.karr.filter(m=>{
+							let farr = that.karr.filter(m=>{
 								let re = new RegExp( '^' + e.title + '(-副本)*$');
 								return re.test(m.title);
-							}).sort((a,b)=>{
-								return a.title - b.title
 							})
-
+							console.log(farr);
 							//有待改进、删除时
-							e.title = n[n.length-1].title + '-副本';
+							// e.title = n[n.length-1].title + '-副本';
+							
+							// e.title = that.copy(e.title,0,farr);
+
+
+
+							/*
+								let arr = ['1','1-副本','1-副本-副本','1-副本-副本-副本']
+								let n = 0;
+								function name(e,n){
+									e += '-副本';
+									n++;
+									if(arr[n] = e){
+										name(e,n);
+									}
+									return e;
+								}
+								
+							*/
+
+							
 
 
 						}
@@ -806,6 +824,15 @@ class CloudDisk{
 			this.tips('请选择要移动的文件!');
 		}
 
+	}
+
+	copy(e,n,arr){
+		e += '-副本';
+		n++;
+		if(arr[n] = e){
+			this.copy(e,n,arr);
+		}
+		return e;
 	}
 
 
