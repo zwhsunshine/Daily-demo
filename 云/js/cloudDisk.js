@@ -1,3 +1,9 @@
+
+//通过解构赋值的方式，拿到tools库下的方法
+let {getChild,getChildren,child,parents,offset,collision,attr,copy} = tools;
+
+
+//CloudDisk
 class CloudDisk{
 
 	constructor(){
@@ -31,6 +37,7 @@ class CloudDisk{
 		this.close = this.tan.getElementsByClassName('close-ico')[0];
 		this.conf = this.tan.getElementsByTagName('a');
 
+
 		//计算高度
 		this.section.style.height = window.innerHeight - this.head.offsetHeight + 'px';
 
@@ -42,7 +49,6 @@ class CloudDisk{
 		this.disX = this.disY = this.kid = 0;
 		this.temp = this.v = '';
 		this.rv = false;   //returnValue
-		this.child = [];   //存放自己及子级的数据;
 		this.karr = [];   //存放要移动到的文件夹中所有数据的title,用于判断title是否+副本
 		this.arr = [];   //用于存放 当前页所有文件夹 的数据
 		this.sarr = [];   //用于存放 选中文件夹 的数据
@@ -106,7 +112,7 @@ class CloudDisk{
 		})
 
 		//data中添加新属性num
-		this.attr('num',[]);
+		attr('num',[]);
 
 		//新建文件夹
 		this.create.addEventListener('click',function(){
@@ -139,26 +145,6 @@ class CloudDisk{
 
 
 
-	//生成数据
-	getChild(id){
-		let arr = [],
-			onOff = false;
-		//遍历数据data，根据传入的参数id把对应的数据push到arr中
-		for(let attr in data){
-			if(data[attr].pid === id){
-				arr.push(data[attr]);
-				onOff = true;
-			}
-		}
-		if(onOff){
-			return arr;
-		}else{
-			return null;
-		}
-	}
-
-
-
 	//渲染
 	render(id){
 
@@ -171,7 +157,7 @@ class CloudDisk{
 		this.sarr.length = 0;
 
 		//生成数据
-		this.arr = this.getChild(id);
+		this.arr = getChild(id,data);
 		
 		//当this.arr为null时，说明没有子级数据的时候，显示 “暂无文件”
 		if(!this.arr){
@@ -282,6 +268,8 @@ class CloudDisk{
 
 		//渲染
 		this.render(id);
+
+		//阻止默认行为
 		ev.preventDefault();
 
 	}
@@ -297,46 +285,13 @@ class CloudDisk{
 
 
 
-	//父级数据
-	parent(id){
-		if( !data[id] || data[id].pid === -1){
-			return data[data[id].pid];
-		}
-	}
-
-
-
-	//所有父级数据
-	parents(id){
-		let now = data[id],
-			parr = [];
-		while(now){
-			parr.unshift(now);
-			now = data[now.pid];
-		}
-		return parr;
-	}
-
-
-
-	//所有子级数据
-	getChildren(id){
-		let arr = this.getChild(id);
-		arr && arr.forEach(e=>{
-			this.child.push(e);
-			this.getChildren(e.id);
-		})
-	}
-
-
-
 	//面包屑
 	nav(id=0){
 		//先清空内容
 		this.breadNav.innerHTML = '';
 
 		//数组arr中放入所有父级数据
-		let arr = this.parents.call(this,id);
+		let arr = parents.call(this,id,data);
 
 		//循环数据，渲染页面
 		arr.forEach((e,i)=>{
@@ -412,8 +367,8 @@ class CloudDisk{
 			this.sarr.length = 0;
 
 			//选框的位置
-			this.disX = ev.pageX - tools.offset(this.fdiv).l;
-			this.disY = ev.pageY - tools.offset(this.fdiv).t;
+			this.disX = ev.pageX - offset(this.fdiv).l;
+			this.disY = ev.pageY - offset(this.fdiv).t;
 			this.frame.style.display = 'block';
 			document.addEventListener('mousemove',this.m = this.move.bind(this));
 			document.addEventListener('mouseup',this.u = this.up.bind(this));
@@ -428,8 +383,8 @@ class CloudDisk{
 	move(ev){
 
 		//记录选框的宽高和上下左右的位置
-		let epX = ev.pageX - tools.offset(this.fdiv).l;
-		let epY = ev.pageY - tools.offset(this.fdiv).t;
+		let epX = ev.pageX - offset(this.fdiv).l;
+		let epY = ev.pageY - offset(this.fdiv).t;
 		let l = Math.min(this.disX,epX),
 			t = Math.min(this.disY,epY),
 			r = l + this.frame.offsetWidth,
@@ -446,7 +401,7 @@ class CloudDisk{
 		for(let i=0; i<this.items.length; i++){
 
 			//框选中
-			if(this.collision(this.frame,this.items[i])){
+			if(collision(this.frame,this.items[i],this.fol)){
 
 				//把当前选中的项push到sarr数组中
 				this.sarr.push(data[this.items[i].dataset.id*1]);
@@ -485,32 +440,14 @@ class CloudDisk{
 
 	//鼠标抬起
 	up(){
+
+		//“暂无文件”隐藏，宽高重置为0
 		this.frame.style.display = 'none';
 		this.frame.style.width = this.frame.style.height = 0;
 
+		//移除move、up事件
 		document.removeEventListener('mousemove',this.m);
 		document.removeEventListener('mouseup',this.u);
-	}
-
-
-
-	//碰撞
-	collision(obj1,obj2){
-		let l1 = obj1.offsetLeft;
-        let t1 = obj1.offsetTop;
-        let b1 = t1 + obj1.offsetHeight;
-        let r1 = l1 + obj1.offsetWidth;
-
-        let l2 = obj2.offsetLeft;
-        let t2 = obj2.offsetTop - this.fol.scrollTop;
-        let b2 = t2 + obj2.offsetHeight;
-        let r2 = l2 + obj2.offsetWidth;
-        
-        if(r1<l2 || b1 < t2 || l1 > r2 || t1 > b2){
-            return false;
-        }else{
-            return true;
-        }
 	}
 
 
@@ -638,14 +575,14 @@ class CloudDisk{
 		num++;
 
 		//获取数据
-		let arr = this.getChild(id);
+		let arr = getChild(id,data);
 
 		//temp拼接字符串
 		this.temp += `<ul style="padding-left:${ num * 5 }px">`;
 		
 		//循环数据，把需要的DOM元素，拼接到temp
 		arr.forEach(e=>{
-			let ary = this.getChild(e.id);
+			let ary = getChild(e.id,data);
 			this.temp += `<li>
                         <div class="tree-title ${ary ? 'tree-ico' : ''} close" data-id="${e.id}">
                             <span><i></i>${e.title}</span>
@@ -678,7 +615,7 @@ class CloudDisk{
 				that.nav(this.dataset.id*1);
 
 				//数组arr存放获取的子级数据
-				let arr = that.getChild(this.dataset.id*1);
+				let arr = getChild(this.dataset.id*1,data);
 
 				//根据 是否存在数组arr 和 arr的length，判断是否有子级
 				if(arr && arr.length){
@@ -731,8 +668,8 @@ class CloudDisk{
 				that.sarr.forEach(e=>{
 
 					//把当前选中的数据及子级的数据 push到数组child中
-					that.child.push(e);
-					that.getChildren(e.id);
+					child.push(e);
+					getChildren(e.id,data);
 
 				})
 
@@ -740,16 +677,21 @@ class CloudDisk{
 					判断数组child中的id是否与要移入的文件夹的id一致，
 					不一致：说明移入的文件是符合逻辑的
 				*/
-				if( that.child.every(f=> f.id !== that.kid ) ){
+				if( child.every(f=> f.id !== that.kid ) ){
 
 					//循环选中的数据
 					that.sarr.forEach(e=>{
+
+						//把数组num中的对应的项删掉，移动的文件夹为新建文件夹+编号时，此时，需要在数组num中删除编号，供下次新建文件夹时，使用编号
+						if('create' in e){
+							delete data[that.id].num[e.create]
+						}
 
 						//先清空that.karr
 						that.karr.length = 0;
 
 						//that.sarr中存放要移动到的文件夹中的所有数据
-						that.karr = that.getChild(that.kid);
+						that.karr = getChild(that.kid,data);
 
 						//移动到的文件夹中所有数据的title 与 选中数据中的title 有重名的时候
 						if(that.karr.some(s=>s.title === e.title)){
@@ -758,31 +700,12 @@ class CloudDisk{
 							let farr = that.karr.filter(m=>{
 								let re = new RegExp( '^' + e.title + '(-副本)*$');
 								return re.test(m.title);
+							}).sort((a,b)=>{
+								return a.title.length - b.title.length;
 							})
-							console.log(farr);
-							//有待改进、删除时
-							// e.title = n[n.length-1].title + '-副本';
 							
-							// e.title = that.copy(e.title,0,farr);
-
-
-
-							/*
-								let arr = ['1','1-副本','1-副本-副本','1-副本-副本-副本']
-								let n = 0;
-								function name(e,n){
-									e += '-副本';
-									n++;
-									if(arr[n] = e){
-										name(e,n);
-									}
-									return e;
-								}
-								
-							*/
-
-							
-
+							//通过递归，加“-副本”
+							e.title = copy(e.title,0,farr);
 
 						}
 
@@ -824,15 +747,6 @@ class CloudDisk{
 			this.tips('请选择要移动的文件!');
 		}
 
-	}
-
-	copy(e,n,arr){
-		e += '-副本';
-		n++;
-		if(arr[n] = e){
-			this.copy(e,n,arr);
-		}
-		return e;
 	}
 
 
@@ -894,7 +808,7 @@ class CloudDisk{
 
 		//input失焦
 		input.onblur = function(){
-			let arr = that.getChild(that.id);
+			let arr = getChild(that.id,data);
 			let flag = arr && arr.some(e=>e.title == this.value);
 
 			//当名字重复时，val还原回之前的名字，选中状态，弹窗提示
@@ -970,20 +884,6 @@ class CloudDisk{
 
 		input.select();
 
-	}
-
-
-
-	//批量添加属性
-	attr(attr,val){
-		for(let i in data){
-			if(Array.isArray(val)){
-				data[i][attr] = [];
-			}else{
-				data[i][attr] = val;
-			}
-			
-		}
 	}
 
 
