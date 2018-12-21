@@ -1,0 +1,261 @@
+﻿<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="/public/css/weibo.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="nArea">
+    <!--留言-->
+    <div class="takeComment">
+        <textarea name="textarea" class="takeTextField" id="text"></textarea>
+        <div class="takeSbmComment">
+            <input type="button" id="submit" class="inputs" value=""/>
+            <span>(可按 Enter 回复)</span>
+        </div>
+    </div>
+    <!--已留-->
+    <div class="commentOn">
+        <div class="messList" id="div1" style="min-height:502px">
+            <!--<div class="reply">
+                <p class="replyContent">卫士，新款卫士将推出总共14种车身式样。其中， XS旅行款车型售价为32295英镑(约33.6万元)。</p>
+                <p class="operation">
+                    <span class="replyTime">2018-09-08 16:37:60</span>
+                    <span class="handle">
+                        <a href="javascript:;" class="top">0</a>
+                        <a href="javascript:;" class="down_icon">0</a>
+                        <a href="javascript:;" class="cut">删除</a>
+                    </span>
+                </p>
+            </div>-->
+        </div>
+        <div class="page" id="page">
+            <!-- <a href="#" class="active">1</a>
+            <a href="#" >2</a> -->
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="backup/tools.js"></script>
+<script type="text/javascript" src="backup/ajax.js"></script>
+<script>
+
+const submit = document.getElementById('submit'),
+    text =  document.getElementById('text'),
+    content = document.getElementById('div1'),
+    page = document.getElementById('page');
+let hash = 0,
+    {formatDate,getCookie,setCookie,rmCookie} = tools,
+    h = window.location.hash;
+
+
+//渲染页码
+pages();
+
+//判断是否有哈希值
+if(!h){
+    window.location.hash = 'page=1';
+    hash = 1;
+}else{
+    hash = window.location.hash.split('=')[1]*1;
+}
+getDate(hash);
+
+//获取数据
+async function getDate(n){
+    content.innerHTML = '';
+    let arr = await ajax({
+        url:'/api/weibo',
+        data:{
+            act:'get',
+            page:n
+        }
+    })
+    let as = page.getElementsByTagName('a');
+    for(let e of as){
+        e.className = '';
+    }
+    as[n].className = 'active';
+    arr.reverse();
+    arr.forEach(e=>{
+        content.insertBefore(render(e),content.children[0]);
+    })
+}
+
+
+
+//提交信息
+async function add(){
+    let v = text.value;
+    if(!v){
+        alert('请输入内容');
+        return;
+    }
+    let data = await ajax({
+        url:' /api/weibo',
+        data:{
+            act:'add',
+            content:text.value
+        }
+    })
+    if( data.code === 0 ){
+        getDate(1);
+        text.value = '';
+    }
+    pages();
+}
+
+
+
+//赞
+async function like(id){
+    let data = await ajax({
+        url:'/api/weibo',
+        data:{
+            act:'like',
+            id
+        }
+    })
+    if( data.code === 0 ){
+        let n = window.location.hash.split('=')[1];
+        getDate(n);
+    }
+}
+
+
+
+//踩
+async function dislike(id){
+    let data = await ajax({
+        url:'/api/weibo',
+        data:{
+            act:'dislike',
+            id
+        }
+    })
+    if( data.code === 0 ){
+        let n = window.location.hash.split('=')[1];
+        getDate(n);
+    }
+}
+
+
+
+//删除
+async function del(id){
+    let data = await ajax({
+        url:'/api/weibo',
+        data:{
+            act:'del',
+            id
+        }
+    })
+    if( data.code === 0 ){
+        let n = window.location.hash.split('=')[1];
+        getDate(n);
+    }
+    pages()
+}
+
+
+//页码
+async function pages(){
+    page.innerHTML = '';
+    let data = await ajax({
+        url:'/api/weibo',
+        data:{
+            act:'get_page_count'
+        }
+    })
+    if( data.code === 0 ){
+        let len = data.count;
+        for(let i=0; i<len; i++){
+            let a = document.createElement('a');
+            a.innerHTML = i+1;
+            let as = page.getElementsByTagName('a');
+            a.className = ( i+1 == hash ) ? 'active':'';
+            a.addEventListener('click',function(){
+                as[hash].className = '';
+                this.className = 'active';
+                hash = i+1;
+                window.location.hash = 'page=' + hash;
+            })
+            page.appendChild(a);
+        }
+
+        //上一页
+        let prev = document.createElement('a');
+        prev.innerHTML = '上一页';
+        prev.addEventListener('click',function(){
+            if( hash == 1 ) return;
+            window.location.hash = 'page=' + (--hash);
+        })
+        page.insertBefore(prev,page.children[0]);
+        
+        //下一页
+        let next = document.createElement('a');
+        next.innerHTML = '下一页';
+        next.addEventListener('click',function(){
+            if( hash == len ) return;
+            window.location.hash = 'page=' + (++hash);
+        })
+        page.appendChild(next);
+    }
+}
+
+
+
+//哈希值改变的时候
+window.onhashchange = function(){
+    getDate(hash);
+}
+
+
+//渲染
+function render(data){
+    let div = document.createElement('div');
+    div.className = 'reply';
+    div.dataset.tid = data.id;
+    div.innerHTML = `
+            <p class="replyContent">${data.content}</p>
+                <p class="operation">
+                    <span class="replyTime">${formatDate(data.time)}</span>
+                    <span class="handle">
+                        <a href="javascript:;" class="top">${data.like}</a>
+                        <a href="javascript:;" class="down_icon">${data.dislike}</a>
+                        <a href="javascript:;" class="cut">删除</a>
+                    </span>
+                </p>`;
+    div.addEventListener('click',function(ev){
+        if( ev.target.className === 'top' ){
+            like(data.id);
+            /*
+                time = 第二天00:00 - 当前时间
+            */
+            // let d = new Date();
+            // let dset = new Date()
+            // console.log(d.getDate() + 1);
+            // setCookie('like',1,{type:'date',time:1});
+        }
+        if( ev.target.className === 'down_icon' ){
+            dislike(data.id);
+        }
+        if( ev.target.className === 'cut' ){
+            del(data.id);
+        }
+    })
+    return div;
+}
+
+
+//提交
+submit.addEventListener('click',function(){
+    add();
+});
+
+
+</script>
+</body>
+</html>

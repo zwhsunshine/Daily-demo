@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>login</title>
+	<link rel="stylesheet" href="/public/css/reset.css">
+    <link rel="stylesheet" href="/public/css/register.css">
+    <title>Title</title>
+    <style>
+        h2 {
+            display: none;
+        }
+        #info{
+          display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2 id="userInfo">欢迎回来,<span id="user"></span></h2>
+<div class="form-wrapper">
+    <div class="banner"></div>
+    <form id="form">
+        <div class="item-wrapper"><label for="username">登陆名</label><input type="text" name="username" id="username" value=""></div>
+        <div class="item-wrapper"><label for="password">密码</label><input type="password" name="password" id="password" value=""></div>
+        <input type="button" value="登陆" id="submit">
+        <input type="button" value="注册" id="register">
+    </form>
+    <p id="info" >请输入信息</p>
+</div>
+
+<script src="./ajax3.js"></script>
+<script type="text/javascript">
+
+const register = document.getElementById('register');
+const submit = document.getElementById('submit');
+const username = document.getElementById('username');
+const password = document.getElementById('password');
+const info = document.getElementById('info');
+let num = 3,
+	timer = null;
+
+// register.addEventListener('click',function(ev){
+// 	ajax({
+// 		url:'/api/user/register',
+// 		data:{
+// 			username:username.value,
+// 			password:password.value
+// 		},
+// 		method:'post',
+// 		success(e){
+// 			info.style.display = 'block';
+//             if(e.code){
+//                 //失败
+//                 info.innerHTML = '用户名已占用';
+//             }else{
+//                 //成功
+//                 info.innerHTML = '注册成功';
+//                 password.value = '';
+//             }
+// 		}
+// 	})
+// })
+
+// submit.addEventListener('click',function(ev){
+// 	ajax({
+// 		url:'/api/user/login',
+// 		data:{
+// 			username:username.value,
+// 			password:password.value
+// 		},
+// 		method:'post',
+// 		success(e){
+// 			info.style.display = 'block';
+// 			if(e.code === 0){
+// 				info.innerHTML = `${e.msg} ( ${num} )`;
+// 				timer = setInterval(function(){
+// 					num--;
+// 					info.innerHTML = `${e.msg} ( ${num} )`;
+// 					if( num === 0 ){
+// 						window.location.href='http://localhost:88/index.html'
+// 						num = 3;
+// 						clearInterval(timer);
+// 					}
+// 				},1000)
+// 			}
+// 			if(e.code === -3){
+// 				info.innerHTML = e.msg;
+// 			}
+// 		}
+// 	})
+// })
+
+
+//注册  async语法糖  让异步变同步
+async function reg(){
+	let data = await ajax({
+		url:'/api/user/register',
+		data:{
+			username:username.value,
+			password:password.value
+		},
+		method:'post'
+	})
+	info.style.display = 'block';
+
+	//成功
+	if(data.code === 0){
+		
+        info.innerHTML = '注册成功';
+        password.value = '';
+	}
+
+	//失败
+	if(data.code === 1){
+        info.innerHTML = '用户名已占用';
+	}
+	
+}
+
+//登录
+async function sub(){
+	let data = await ajax({
+		url:'/api/user/login',
+		data:{
+			username:username.value,
+			password:password.value
+		},
+		method:'post'
+	})
+	info.style.display = 'block';
+	if(data.code === 0){
+		info.innerHTML = `${data.msg} ( ${num} )`;
+		timer = setInterval(function(){
+			num--;
+			info.innerHTML = `${data.msg} ( ${num} )`;
+			if( num === 0 ){
+				window.location.href='http://localhost:88/index.html'
+				num = 3;
+				clearInterval(timer);
+			}
+		},1000)
+	}
+	if(data.code === -3){
+		info.innerHTML = data.msg;
+	}
+}
+
+
+//注册
+register.addEventListener('click',reg)
+//登录
+submit.addEventListener('click',sub)
+
+
+
+
+
+/*
+	function* helloWorldGenerator() {
+	  yield 'hello';
+	  yield 'world';
+	  return 'ending';
+	}
+	var hw = helloWorldGenerator();
+
+	hw.next()
+	// { value: 'hello', done: false }
+
+	hw.next()
+	// { value: 'world', done: false }
+
+	hw.next()
+	// { value: 'ending', done: true }
+
+	hw.next()
+	// { value: undefined, done: true }
+
+*/
+
+
+</script>
+
+</body>
+</html>
