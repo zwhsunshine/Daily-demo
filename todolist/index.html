@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>todos</title>
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+</head>
+
+<body>
+
+    <section class="todoapp" id="app">
+        <div>
+            <header class="header" >
+                <h1>todos</h1>
+                <input @keyup.13="submit" class="new-todo" placeholder="请输入内容" value="" v-model='inputVal'>
+            </header>
+            <section class="main">
+                <input class="toggle-all" type="checkbox" checked="">
+                <ul class="todo-list">
+                    <li 
+                        v-for="(val,key) in arr" 
+                        :class="{completed:val.checked}"
+                    >
+                        <div class="view">
+                            <input 
+                                v-model='val.checked' 
+                                class="toggle" 
+                                type="checkbox"
+                            >
+                            <label @click="edit(key)">{{val.txt}}</label>
+                            <button 
+                                @click="del(key)" 
+                                class="destroy"
+                            ></button>
+                        </div>
+                        <!-- <input 
+                            autofocus=true 
+                            @focus=''
+                            @blur="blur(key)" 
+                            class="edit" 
+                            :style="{display: val.d}" 
+                            v-model="val.txt"
+                        > -->
+                    </li>
+                </ul>
+            </section>
+            <footer class="footer">
+	            <span class="todo-count">
+	            	<strong>{{select}}</strong>
+	            	<span>条未选中</span>
+	            </span>
+                <ul class="filters">
+                    <li>
+                        <a class="selected">全部</a>
+                    </li>
+                    <li>
+                        <a>选中</a>
+                    </li>
+                    <li>
+                        <a>未选中</a>
+                    </li>
+                </ul>
+                <!-- <span @click='all'>全部</span>
+                <span @click='selection'>选中</span>
+                <span @click='unchecked'>未选中</span> -->
+            </footer>
+        </div>
+    </section>
+<script src="js/vue.js" charset="utf-8"></script>
+<script src="js/main.js" charset="utf-8"></script>
+</body>
+</html>

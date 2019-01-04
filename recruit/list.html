@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+
+<div id="content">
+	<ul id="leftList">
+		<li 
+			v-for="val in arr.list" 
+			@click="typeFn(val.lx)" 
+			:class="{active:val.lx==type}"
+		>
+			<span>{{val.text}}</span>{{val.eng}}
+		</li>
+	</ul>
+	<div id="right">
+		<ul id="rightList">
+			<li 
+				v-for="(val,key) in getDate" 
+				@click="viewFn(key)"
+			>
+				<span class="num">{{arr.add0( (page-1)*size + key + 1)}}</span>
+				<div class="list">
+					<a>
+						<span class="job">职位需求：{{val.zw}}</span>
+						<span>需求人数：{{val.rs}}名</span>
+						<time>{{arr.formateDate(val.sj,1)}}</time>
+					</a>
+					<p>
+						<span class="text">{{val.info[0].t}}{{val.info[0].l}}</span>
+						<a href="javascript:;">查看详情>></a>
+					</p>
+				</div>
+			</li>
+		</ul>
+		<nav id="nav">
+			<a @click='pageFn(page-1)' href="javascript:;">&lt;</a>
+			<a 
+				v-for="(val,key) in pageAll" 
+				@click='pageFn(key+1)' 
+				:class='{active:key==(page-1)}' 
+				href="javascript:;"
+			>{{key+1}}</a>
+			<a @click='pageFn(page*1+1)' href="javascript:;">&gt;</a>
+		</nav>
+	</div>
+</div>
+
+<script src="js/data.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script>
+
+new Vue({
+	el:'#content',
+	data:{
+		arr:d,   //数据
+		type:'sh',   //招聘类型
+		page:1,   //当前页码
+		size:4,   //每页4条数据
+		active:null,   //数据是第几条
+		obj:{},
+		hashVal:null,    //哈希值
+		pageCount:null    //总页数
+	},
+	methods:{
+
+		//左侧菜单切换
+		typeFn(n){
+			this.type = n;
+			this.page = 1;
+			this.obj = {
+				type:this.type
+			}
+			this.hash;
+		},
+
+		//页码上的点击事件
+		pageFn(k){
+			if( k == 0 ) k=1;
+			if( k >= this.pageCount ) k=this.pageCount;
+			this.page = k;
+			this.obj = {
+				type:this.type,
+				page:this.page
+			}
+			this.hash;
+		},
+
+		//跳转至详情页
+		viewFn(k){
+			this.obj = {
+				type:this.type,
+				page:this.page,
+				active: (this.page-1) * this.size + k
+			}
+			window.location.href = `content.html${this.hash}`;
+		}
+
+	},
+	computed:{
+
+		//根据page和size获取当前页的数据
+		getDate(){
+
+			//如果有哈希，则把初始数据中type和page修改为与哈希一致
+			this.hashVal = window.location.hash;
+			if(this.hashVal){
+				let hashArr = this.hashVal.substring(1).split('&');
+				hashArr.forEach(e=>{
+					this[e.split('=')[0]] = e.split('=')[1]
+				})
+			}
+
+			//从总数据 截取 当前页的数据
+			return this.arr[this.type].text.slice( (this.page-1)*this.size, this.page*this.size );
+		},
+
+		//计算总页数，以此来渲染页码
+		pageAll(){
+			this.pageCount =  Math.ceil( this.arr[this.type].text.length / this.size );
+			return this.pageCount;
+		},
+
+		//哈希值
+		hash(){
+			window.location.hash = new URLSearchParams(this.obj).toString();
+			return window.location.hash;
+		}
+
+	}
+})
+
+
+
+</script>
+</body>
+</html>
