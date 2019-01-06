@@ -20,18 +20,17 @@
 	<div id="right">
 		<ul id="rightList">
 			<li 
-				v-for="(val,key) in getDate" 
-				@click="viewFn(key)"
+				v-for="(val,key) in pageArr" 
 			>
 				<span class="num">{{arr.add0( (page-1)*size + key + 1)}}</span>
 				<div class="list">
-					<a>
+					<a :href='viewFn(key)'>
 						<span class="job">职位需求：{{val.zw}}</span>
 						<span>需求人数：{{val.rs}}名</span>
 						<time>{{arr.formateDate(val.sj,1)}}</time>
 					</a>
 					<p>
-						<span class="text">{{val.info[0].t}}{{val.info[0].l}}</span>
+						<span class="text">{{ val.info[0].t + val.info[0].l[0] + val.info[0].l[1] }}</span>
 						<a href="javascript:;">查看详情>></a>
 					</p>
 				</div>
@@ -54,6 +53,8 @@
 <script type="text/javascript" src="js/vue.js"></script>
 <script>
 
+//最后有彩蛋~~~
+
 new Vue({
 	el:'#content',
 	data:{
@@ -62,9 +63,9 @@ new Vue({
 		page:1,   //当前页码
 		size:4,   //每页4条数据
 		active:null,   //数据是第几条
-		obj:{},
 		hashVal:null,    //哈希值
-		pageCount:null    //总页数
+		pageCount:null,    //总页数
+		pageArr:[]   //存放当前页的数据
 	},
 	methods:{
 
@@ -72,10 +73,7 @@ new Vue({
 		typeFn(n){
 			this.type = n;
 			this.page = 1;
-			this.obj = {
-				type:this.type
-			}
-			this.hash;
+			window.location.hash = `type=${this.type}`;
 		},
 
 		//页码上的点击事件
@@ -83,27 +81,29 @@ new Vue({
 			if( k == 0 ) k=1;
 			if( k >= this.pageCount ) k=this.pageCount;
 			this.page = k;
-			this.obj = {
-				type:this.type,
-				page:this.page
-			}
-			this.hash;
+			window.location.hash = `type=${this.type}&page=${this.page}`;
 		},
 
 		//跳转至详情页
 		viewFn(k){
-			this.obj = {
-				type:this.type,
-				page:this.page,
-				active: (this.page-1) * this.size + k
-			}
-			window.location.href = `content.html${this.hash}`;
+			this.active = (this.page-1) * this.size + k;
+			return `content.html#type=${this.type}&page=${this.page}&active=${this.active}`;
 		}
 
 	},
+
+	created(){
+		this.hashVal = window.location.hash;
+		this.getDate;
+		window.onhashchange = () =>{
+			console.log(2);
+			this.getDate;
+		}
+	},
+
 	computed:{
 
-		//根据page和size获取当前页的数据
+		//当前页的数据
 		getDate(){
 
 			//如果有哈希，则把初始数据中type和page修改为与哈希一致
@@ -114,27 +114,64 @@ new Vue({
 					this[e.split('=')[0]] = e.split('=')[1]
 				})
 			}
-
+			
 			//从总数据 截取 当前页的数据
-			return this.arr[this.type].text.slice( (this.page-1)*this.size, this.page*this.size );
+			this.pageArr = this.arr[this.type].text.slice( (this.page-1)*this.size, this.page*this.size );
+			
 		},
 
 		//计算总页数，以此来渲染页码
 		pageAll(){
 			this.pageCount =  Math.ceil( this.arr[this.type].text.length / this.size );
 			return this.pageCount;
-		},
-
-		//哈希值
-		hash(){
-			window.location.hash = new URLSearchParams(this.obj).toString();
-			return window.location.hash;
 		}
 
 	}
 })
 
 
+/*
+彩蛋在此：
+	在学习Vue生命周期这个板块的时候，Vue官网说，“你不需要立马弄明白所有的东西”，但是并没有说“你不需要弄明白”，所以，还是乖乖的查文档，多实践，做记录吧！
+
+	1. 生命周期：
+		Vue中实例或者组件从创建到消失中间经过的一系列过程
+
+	2. beforeCreate
+		1. 在实例初始化之后，数据观测(data observer) 和 event/watcher 事件配置之前被调用
+		2. 简单来说，new Vue之后，可以理解为第一句话就调用beforeCreate
+
+	2. created -> 常用   （这是个方法，只执行一次）
+		1. 实例已经创建完成之后被调用。
+		2. 在这一步，实例已完成以下的配置：数据观测(data observer)，属性和方法的运算， watch/event 事件回调。
+		3. 然而，挂载阶段还没开始，$el 属性目前不可见。在模板渲染成html前调用，然后再渲染成视图（即，在create里面获取元素是获取不到的）
+	
+	3. beforeMount
+		在挂载开始之前被调用：相关的 render 函数首次被调用。
+
+	3. mounted -> 常用
+		1. el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用该钩子。
+		2. 即，在模板渲染成html后调用，通常是初始化页面完成后，再对html的dom节点进行一些需要的操作，此时是可以获取到元素的。
+	
+	4. beforeUpdate
+		1. 数据更新时调用，发生在虚拟 DOM 重新渲染和打补丁之前。
+		2. 你可以在这个钩子中进一步地更改状态，这不会触发附加的重渲染过程。
+	
+	4. updated
+		1. 由于数据更改导致的虚拟 DOM 重新渲染和打补丁，在这之后会调用该钩子
+		2. 当这个钩子被调用时，组件 DOM 已经更新，所以你现在可以执行依赖于 DOM 的操作。然而在大多数情况下，你应该避免在此期间更改状态，因为这可能会导致更新无限循环。
+		3. 该钩子在服务器端渲染期间不被调用。
+
+	5. beforeDestroy
+		实例销毁之前调用。在这一步，实例仍然完全可用。
+
+	5. destroyed -> 常用
+		Vue 实例销毁后调用。调用后，Vue 实例指示的所有东西都会解绑定，所有的事件监听器会被移除，所有的子实例也会被销毁。 该钩子在服务器端渲染期间不被调用。
+
+
+	注：
+		参考网址：https://segmentfault.com/a/1190000008570622
+*/
 
 </script>
 </body>
