@@ -1,85 +1,116 @@
 
-
-// 注册一个全局自定义指令 `v-focus`
-// Vue.directive('focus', {
-// 	// 当被绑定的元素插入到 DOM 中时……
-// 	inserted: function (el) {
-// 	// 聚焦元素
-// 	el.focus()
-// }
-
-
 new Vue({
 	el:'#app',
 	data:{
-		inputVal:'',
-		arr:getStorage('data'),
-		num:0
+		arr:[
+			{
+				id:0,
+				txt:'aaaaaa',
+				checked:true
+			},
+			{
+				id:1,
+				txt:'bbbbbb',
+				checked:false
+			},
+			{
+				id:2,
+				txt:'cccccc',
+				checked:false
+			}
+		],
+		hashVal:null,   //哈希值
+		filters:[]    //筛选后的数据
 	},
 	methods:{
-		submit(){
-			if(!this.inputVal){
-				alert('请输入内容！');
-				return;
-			}
+		add(v){
 			this.arr.push({
-				txt:this.inputVal,
-				checked:false,
-				focus:false,
-				d:'none',
-				
+				id:Date.now(),
+				txt:v,
+				checked:false
 			});
-			this.inputVal = '';
 		},
-		del(i){
-			this.arr.splice(i,1);
+		del(id){
+			this.arr = this.arr.filter(e=> e.id != id );
 		},
-		// edit(i){
-		// 	this.arr[i].focus = true;
-		// 	this.arr[i].d = 'block';
-			
-		// },
-		// blur(i){
-		// 	// this.arr[i].txt = this.inputVal;
-		// 	this.arr[i].focus = false;
-		// 	this.arr[i].d = 'none';
-			
-		// },
-		all(){
-			this.arr = this.arr.filter(e=>e);
+		hashFn(){
+			this.hashVal = window.location.hash.substring(1);
+			this.filters = this.arr.filter(e=>{
+				switch (this.hashVal){
+					case '/all':
+						return e;
+						break;
+					case '/checked':
+						return e.checked;
+						break;
+					case '/unchecked':
+						return !e.checked;
+						break;
+				}
+			})
 		},
-		selection(){
-			console.log(1);
-			this.arr = this.arr.filter(e=>e.checked);
-			console.log(this.arr);
-		},
-		unchecked(){
-			this.arr = this.arr.filter(e=>!e.checked);
-		}
-	},
-	computed:{
-		select:{
-			get(){
-				this.num = this.arr.filter(e=>!e.checked).length;
-				return this.num
-			}
+		getStorage(arr,name){
+			let data = window.locaStorage.getItem(name);
+			window.locaStorage.setItem(name,)
 		}
 		
 	},
+	created(){
+		this.hashVal = window.location.hash;
+		if( !this.hashVal ){
+			window.location.hash = '/all'
+		}
+		this.hashFn();
+		window.onhashchange = ()=>{
+			this.hashFn();
+			
+		}
+	},
+
+	//监听：
 	watch:{
+
+		//每当arr发生变化的时候，就执行hashFn()
 		arr:{
-			handler(v){
-				localStorage.setItem('data',JSON.stringify(v));
+			handler(){
+				this.hashFn();
 			},
 			deep:true
 		}
+	},
+	computed:{
+		all:{
+			get(){
+				if(!this.arr.length){
+					return false;
+				}
+				return this.arr.every(e=>e.checked);
+			},
+			set(newValue){
+				this.arr.forEach(e=>e.checked == newValue);
+			}
+		},
+		num(){
+			return this.arr.filter(e=>!e.checked).length
+		}
 	}
+
 })
 
-function getStorage(name){
-	let data = localStorage.getItem(name) || '[{"txt":"This is the first to do.","checked":true,"focus":true,"d":"none"}]';
-	return JSON.parse(data);
-}
+/*
+解析：
+	1. hashFn()
+		放到computed中，onhashchange的时候，没有继续调用，
+		1. computed中的方法，在调用的时候，不用加()，否则会报错，因为监听到数据变化会自动调用
+		2. methods中的方法，在调用的时候，加()，在
+
+*/
+
+
+
+
+
+
 
 
 
