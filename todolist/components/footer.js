@@ -9,13 +9,13 @@ Vue.component('myfooter',{
                 <li v-for="(val,key) in farr">
                     <a 
                     	:href="val.hashMsg" 
-                    	class="selected"
+                    	:class="{selected:val.hashMsg.substring(1) == hval}"
                     >{{val.txt}}</a>
                 </li>
             </ul>
         </footer>
 	`,
-	props:['n'],   //未选中的个数
+	props:['n','hval'],   //未选中的个数
 	data(){
 		return {
 			farr:[

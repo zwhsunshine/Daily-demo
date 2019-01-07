@@ -4,12 +4,12 @@ Vue.component('list',{
             <ul class="todo-list">
                 <li v-for="(val,key) in ary" :class="{completed:val.checked}">
                     <div class="view">
-                        <input 
+                        <input
                             v-model="val.checked" 
                             class="toggle" 
                             type="checkbox" 
                         />
-                        <label>{{val.txt}}</label>
+                        <label @click="editfn(key)">{{val.txt}}</label>
                         <button 
                             @click="des(val.id)"
                             class="destroy"
@@ -23,6 +23,9 @@ Vue.component('list',{
     methods:{
         des(id){
             this.$emit('delfn',id);
+        },
+        editfn(k){
+            this.$emit('edit',k);
         }
     }
 })
